@@ -51,34 +51,47 @@ const CalculatorButton: React.FC<ButtonProps> = ({
 
 export default function App(): JSX.Element {
   const [displayValue, setDisplayValue] = useState("0");
+  const [equationValue, setEquationValue] = useState("0");
   const [currentValue, setCurrentValue] = useState<number | null>(null);
   const [operator, setOperator] = useState<Operator | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showResult, setShowResult] = useState(false);
   const theme = isDarkMode ? DARK_THEME : LIGHT_THEME;
   const styles = createStyles(theme);
 
   const handleNumberPress = (num: string): void => {
     if (displayValue === "0") {
       setDisplayValue(num);
+      if (equationValue === "0") {
+        setEquationValue(num);
+      } else {
+        setEquationValue((prev) => prev + num);
+      }
     } else {
       setDisplayValue(displayValue + num);
+      setEquationValue(equationValue + num);
     }
+    setShowResult(false);
+    // setEquationValue("0");
   };
 
   const handleOperatorPress = (op: Operator): void => {
     if (currentValue === null) {
       setCurrentValue(parseFloat(displayValue));
+      setEquationValue((prev) => prev + op);
     } else if (operator) {
       const result = calculateResult();
       setCurrentValue(result);
       setDisplayValue(result.toString());
+      setEquationValue((prev) => prev + op);
     }
     setOperator(op);
     setDisplayValue("0");
+    setShowResult(false);
   };
 
   const calculateResult = (): number => {
-    const value = parseFloat(displayValue);
+    const value = parseFloat(equationValue);
     switch (operator) {
       case "+":
         return (currentValue || 0) + value;
@@ -96,18 +109,20 @@ export default function App(): JSX.Element {
   };
 
   const handleEqualPress = (): void => {
-    if (operator && currentValue !== null) {
+    if (currentValue !== null) {
       const result = calculateResult();
       setCurrentValue(null);
       setOperator(null);
       setDisplayValue(result.toString());
+      setShowResult(true);
     }
   };
-
   const handleClearPress = (): void => {
     setDisplayValue("0");
     setCurrentValue(null);
     setOperator(null);
+    setEquationValue("0");
+    setShowResult(false);
   };
 
   return (
@@ -144,9 +159,29 @@ export default function App(): JSX.Element {
         />
       </View>
       <View style={styles.display}>
-        <Text style={[styles.displayText, { color: theme.TEXT_COLOR }]}>
-          {displayValue}
+        <Text
+          style={[
+            styles.displayText,
+            { color: theme.TEXT_COLOR, fontWeight: "400" },
+          ]}
+        >
+          {equationValue}
         </Text>
+        {showResult && (
+          <Text
+            style={[
+              styles.displayText,
+              {
+                // color: theme.TEXT_COLOR,
+                fontSize: 35,
+                fontWeight: "400",
+                color: "gray",
+              },
+            ]}
+          >
+            ={displayValue}
+          </Text>
+        )}
       </View>
       <View style={styles.buttonContainer}>
         <CalculatorButton
